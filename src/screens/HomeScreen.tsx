@@ -568,14 +568,7 @@ const HomeScreen = ({ navigation }) => {
 
           <View style={styles.cardFooter}>
             <View style={styles.cardActions}>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="thumbs-up-outline" size={16} color={isDarkMode ? "#FFFFFF" : "#000000"} />
-                <Text style={styles.actionText}>{item.upvotes || 0}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <Ionicons name="chatbubble-outline" size={16} color={isDarkMode ? "#FFFFFF" : "#000000"} />
-                <Text style={styles.actionText}>{item.comments || 0}</Text>
-              </TouchableOpacity>
+
             </View>
 
             <View style={styles.userInfo}>
