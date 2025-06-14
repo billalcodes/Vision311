@@ -45,11 +45,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     setIsLoading(true);
     try {
       const response = await api.login({ email, password });
-      
+
       if (response.token && response.user) {
         api.setToken(response.token);
         setUser(response.user);
@@ -60,17 +60,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Login error:", error);
-      throw error;
+      // Provide more specific error messages
+      if (error.message.includes('Network request failed')) {
+        throw new Error("Cannot connect to server. Please check your internet connection.");
+      } else if (error.message.includes('Invalid credentials')) {
+        throw new Error("Invalid email or password");
+      } else {
+        throw new Error(error.message || "Login failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name, email, password) => {
     setIsLoading(true);
     try {
       const response = await api.register({ name, email, password });
-      
+
       if (response.token && response.user) {
         api.setToken(response.token);
         setUser(response.user);
@@ -81,12 +88,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error("Registration error:", error);
-      throw error;
+      // Provide more specific error messages
+      if (error.message.includes('Network request failed')) {
+        throw new Error("Cannot connect to server. Please check your internet connection.");
+      } else if (error.message.includes('User already exists')) {
+        throw new Error("An account with this email already exists");
+      } else {
+        throw new Error(error.message || "Registration failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
-
   const updateUser = async (userData: Partial<User>) => {
     setIsLoading(true);
     try {

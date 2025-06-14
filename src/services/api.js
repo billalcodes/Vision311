@@ -1,6 +1,6 @@
 //const API_URL = 'http://10.0.2.2:5000/api'; // Use this for Android emulator
-const API_URL = 'http://172.20.10.2:5000/api'; // Change this to your local API URL
-const API_BASE_URL = 'http://172.20.10.2:5000'; // Base URL without /api suffix
+const API_URL = 'http://10.0.2.2:5001/api';
+const API_BASE_URL = 'http://10.0.2.2:5001';// Base URL without /api suffix
 const SENTIMENT_API_URL = 'http://127.0.0.1:8001/predict'; // Sentiment analysis API
 
 // Store JWT token
@@ -474,6 +474,25 @@ export const getReportById = async (reportId) => {
   } catch (error) {
     console.error('Get report error:', error);
     return null; // Return null instead of throwing error to avoid crashes
+  }
+};
+export const forgotPassword = async (email, newPassword) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, newPassword }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Password reset failed');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    throw error;
   }
 };
 export const updateReport = async (reportId, updateData) => {

@@ -149,4 +149,34 @@ router.put('/user', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/forgot-password
+// @desc    Reset password without verification
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: 'Email and new password are required' });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found with this email' });
+    }
+
+    // Update password directly (will be hashed by the pre-save middleware)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
+

@@ -22,13 +22,11 @@ const Logo311 = ({ size = "medium" }) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
 
-  // Logo colors - defined locally
   const logoColors = {
-    primary: "#FF5252", // Red/orange bar
-    textColor: isDarkMode ? "#FFFFFF" : "#0F1A2A" // Dark blue/black for light mode, white for dark mode
+    primary: "#FF5252",
+    textColor: isDarkMode ? "#FFFFFF" : "#0F1A2A"
   };
 
-  // Determine sizes based on the size prop
   const fontSize = size === "large" ? 48 : size === "small" ? 24 : 36;
   const barHeight = size === "large" ? 8 : size === "small" ? 4 : 6;
 
@@ -53,10 +51,9 @@ const Logo311 = ({ size = "medium" }) => {
   );
 };
 
-// Define local colors based on theme
 const COLORS = {
-  primary: "#FF5252", // Red/orange from the bar in the logo
-  secondary: "#0F1A2A", // Dark blue/black from the "311" text
+  primary: "#FF5252",
+  secondary: "#0F1A2A",
   background: {
     light: "#FFFFFF",
     dark: "#121212",
@@ -81,15 +78,17 @@ const AuthScreen = ({ navigation }) => {
   const colorScheme = useColorScheme()
   const isDarkMode = colorScheme === "dark"
 
-
   const [activeTab, setActiveTab] = useState("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { setUser, login, register } = useUser()
+  const { login, register } = useUser()
 
-  // In the handleLogin function:
+  // Forgot password states
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password");
@@ -101,13 +100,12 @@ const AuthScreen = ({ navigation }) => {
       await login(email, password);
       navigation.replace("Main");
     } catch (error) {
-      Alert.alert("Login Failed", "Invalid email or password");
+      Alert.alert("Login Failed", error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // In the handleSignup function:
   const handleSignup = async () => {
     if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields");
@@ -119,27 +117,32 @@ const AuthScreen = ({ navigation }) => {
       await register(name, email, password);
       navigation.replace("Main");
     } catch (error) {
-      Alert.alert("Registration Failed", "Could not create account. Try again.");
+      Alert.alert("Registration Failed", error.message || "Could not create account. Try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleAuth = () => {
-    setIsLoading(true)
+  const handleForgotPassword = async () => {
+    if (!forgotEmail || !newPassword) {
+      Alert.alert("Error", "Please enter both email and new password");
+      return;
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      setUser({
-        id: "1",
-        name: "Google User",
-        email: "user@gmail.com",
-        avatar: "https://via.placeholder.com/40",
-      })
-      setIsLoading(false)
-      navigation.replace("Main")
-    }, 1000)
-  }
+    setIsLoading(true);
+    try {
+      await api.forgotPassword(forgotEmail, newPassword);
+      Alert.alert("Success", "Password updated successfully! You can now login with your new password.", [
+        { text: "OK", onPress: () => setActiveTab("login") }
+      ]);
+      setForgotEmail("");
+      setNewPassword("");
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to update password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -188,19 +191,14 @@ const AuthScreen = ({ navigation }) => {
       marginBottom: 12,
       backgroundColor: isDarkMode ? "#333333" : "#F5F5F5",
     },
-    socialButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 12,
-      borderRadius: 4,
-      backgroundColor: isDarkMode ? "#333333" : "#F0F0F0",
-      marginTop: 16,
+    forgotPasswordLink: {
+      alignSelf: "flex-end",
+      marginTop: 8,
+      marginBottom: 16,
     },
-    socialButtonText: {
-      marginLeft: 8,
-      fontWeight: "500",
-      color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
+    forgotPasswordText: {
+      color: COLORS.primary,
+      fontSize: 14,
     },
   })
 
@@ -225,6 +223,12 @@ const AuthScreen = ({ navigation }) => {
           >
             <Text style={[styles.tabText, activeTab === "signup" && styles.activeTabText]}>Sign Up</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "forgot" && styles.activeTab]}
+            onPress={() => setActiveTab("forgot")}
+          >
+            <Text style={[styles.tabText, activeTab === "forgot" && styles.activeTabText]}>Reset</Text>
+          </TouchableOpacity>
         </View>
 
         <Surface
@@ -237,23 +241,13 @@ const AuthScreen = ({ navigation }) => {
         >
           {activeTab === "login" ? (
             <View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  marginBottom: 16,
-                  color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
-                }}
-              >
+              <Text style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 16,
+                color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
+              }}>
                 Login
-              </Text>
-              <Text
-                style={{
-                  marginBottom: 16,
-                  color: isDarkMode ? COLORS.text.dark.secondary : COLORS.text.light.secondary,
-                }}
-              >
-                Enter your credentials to access your account
               </Text>
 
               <View style={styles.inputContainer}>
@@ -276,6 +270,14 @@ const AuthScreen = ({ navigation }) => {
                   secureTextEntry
                   theme={{ colors: { primary: COLORS.primary } }}
                 />
+
+                <TouchableOpacity
+                  style={styles.forgotPasswordLink}
+                  onPress={() => setActiveTab("forgot")}
+                >
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+
                 <Button
                   mode="contained"
                   onPress={handleLogin}
@@ -287,25 +289,15 @@ const AuthScreen = ({ navigation }) => {
                 </Button>
               </View>
             </View>
-          ) : (
+          ) : activeTab === "signup" ? (
             <View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  marginBottom: 16,
-                  color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
-                }}
-              >
+              <Text style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 16,
+                color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
+              }}>
                 Sign Up
-              </Text>
-              <Text
-                style={{
-                  marginBottom: 16,
-                  color: isDarkMode ? COLORS.text.dark.secondary : COLORS.text.light.secondary,
-                }}
-              >
-                Create a new account to get started
               </Text>
 
               <View style={styles.inputContainer}>
@@ -347,12 +339,55 @@ const AuthScreen = ({ navigation }) => {
                 </Button>
               </View>
             </View>
-          )}
+          ) : (
+            <View>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 16,
+                color: isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary,
+              }}>
+                Reset Password
+              </Text>
+              <Text style={{
+                marginBottom: 16,
+                color: isDarkMode ? COLORS.text.dark.secondary : COLORS.text.light.secondary,
+              }}>
+                Enter your email and new password
+              </Text>
 
-          <TouchableOpacity style={styles.socialButton} onPress={handleGoogleAuth} disabled={isLoading}>
-            <Ionicons name="mail" size={20} color={isDarkMode ? COLORS.text.dark.primary : COLORS.text.light.primary} />
-            <Text style={styles.socialButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  label="Email"
+                  value={forgotEmail}
+                  onChangeText={setForgotEmail}
+                  mode="outlined"
+                  style={styles.input}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  theme={{ colors: { primary: COLORS.primary } }}
+                />
+                <TextInput
+                  label="New Password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  mode="outlined"
+                  style={styles.input}
+                  secureTextEntry
+                  theme={{ colors: { primary: COLORS.primary } }}
+                />
+                <Button
+                  mode="contained"
+                  onPress={handleForgotPassword}
+                  loading={isLoading}
+                  disabled={isLoading}
+                  style={{ backgroundColor: COLORS.primary }}
+                >
+                  Reset Password
+                </Button>
+              </View>
+            </View>
+          )}
         </Surface>
       </ScrollView>
     </KeyboardAvoidingView>

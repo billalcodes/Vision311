@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 });
 
 // Connect to MongoDB
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
