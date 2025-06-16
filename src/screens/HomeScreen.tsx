@@ -28,7 +28,18 @@ import Ionicons from "react-native-vector-icons/Ionicons"
 import * as api from "../services/api"
 import * as FileSystem from "expo-file-system"
 import { useTheme } from "../context/ThemeContext"
+// Helper function to get initials from full name
+const getInitials = (name) => {
+  if (!name) return "U";
 
+  const names = name.trim().split(' ');
+  if (names.length === 1) {
+    return names[0].charAt(0).toUpperCase();
+  }
+
+  // Return first letter of first name + first letter of last name
+  return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+};
 // 311 Logo component defined locally
 const Logo311 = ({ size = "small", horizontal = false }) => {
   const { isDarkMode } = useTheme();
@@ -325,7 +336,7 @@ const HomeScreen = ({ navigation }) => {
       console.log('Analyzing image:', imageUri);
 
       // Send the request to the ML prediction endpoint
-      const response = await fetch('http://172.20.10.2:8000/predict', {
+      const response = await fetch('http://10.0.2.2:8000/predict', {
         method: 'POST',
         body: formData,
       });
@@ -572,11 +583,20 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.userInfo}>
-              <Avatar.Image
-                size={24}
-                source={{ uri: userInfo.avatar }}
-                onError={() => console.log("Avatar load error")}
-              />
+              {userInfo.avatar ? (
+                <Avatar.Image
+                  size={24}
+                  source={{ uri: userInfo.avatar }}
+                  onError={() => console.log("Avatar load error")}
+                />
+              ) : (
+                <Avatar.Text
+                  size={24}
+                  label={getInitials(userInfo.name)}
+                  style={{ backgroundColor: "#FF5252" }}
+                  color="white"
+                />
+              )}
               <Text style={styles.userName}>{userInfo.name}</Text>
             </View>
           </View>
@@ -829,10 +849,19 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Logo311 size="small" />
-        <Avatar.Image size={32} source={{ uri: user?.avatar || "https://via.placeholder.com/40" }} />
-      </View>
+<View style={styles.header}>
+  <Logo311 size="small" />
+  {user?.avatar ? (
+    <Avatar.Image size={32} source={{ uri: user.avatar }} />
+  ) : (
+    <Avatar.Text
+      size={32}
+      label={getInitials(user?.name)}
+      style={{ backgroundColor: "#FF5252" }}
+      color="white"
+    />
+  )}
+</View>Ï
 
       <View style={styles.tabContainer}>
         <TouchableOpacity

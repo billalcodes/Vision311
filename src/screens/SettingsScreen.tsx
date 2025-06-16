@@ -244,9 +244,6 @@ const SettingsScreen = ({ navigation }) => {
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{user?.name}</Text>
               <Text style={styles.profileEmail}>{user?.email}</Text>
-              <TouchableOpacity style={styles.changePhotoButton}>
-                <Text style={styles.changePhotoText}>Change Profile Picture</Text>
-              </TouchableOpacity>
             </View>
           </View>
 

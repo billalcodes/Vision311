@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View, Text, useColorScheme } from 'react-native';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper'; // Add this import
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SentimentScreen from './src/screens/SentimentScreen';
 // Screen imports
@@ -16,6 +17,39 @@ import SettingsScreen from './src/screens/SettingsScreen';
 // Context providers
 import { UserProvider } from './src/context/UserContext';
 import { ThemeProvider, useTheme, getColors } from './src/context/ThemeContext';
+
+// Custom Paper theme configuration
+const customLightTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: '#FF5252',
+    primaryContainer: '#FFEBEE',
+    secondary: '#FF5252',
+    secondaryContainer: '#FFEBEE',
+    tertiary: '#FF5252',
+    surface: '#FFFFFF',
+    surfaceVariant: '#F5F5F5',
+    background: '#FFFFFF',
+    outline: '#CCCCCC',
+  },
+};
+
+const customDarkTheme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    primary: '#FF5252',
+    primaryContainer: '#5D0E0E',
+    secondary: '#FF5252',
+    secondaryContainer: '#5D0E0E',
+    tertiary: '#FF5252',
+    surface: '#1E1E1E',
+    surfaceVariant: '#333333',
+    background: '#121212',
+    outline: '#666666',
+  },
+};
 
 // 311 Logo component for headers
 const Logo311 = ({ size = "small", horizontal = false }) => {
@@ -101,8 +135,11 @@ function AppNavigator() {
   const { isDarkMode } = useTheme();
   const colors = getColors(isDarkMode);
 
+  // Select the appropriate theme based on dark mode
+  const paperTheme = isDarkMode ? customDarkTheme : customLightTheme;
+
   return (
-    <>
+    <PaperProvider theme={paperTheme}>
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={colors.background}
@@ -139,7 +176,7 @@ function AppNavigator() {
             />
         </Stack.Navigator>
       </NavigationContainer>
-    </>
+    </PaperProvider>
   );
 }
 
