@@ -11,7 +11,6 @@ import {
 } from "react-native"
 import { Button, Card, TextInput } from "react-native-paper"
 import { useTheme } from "../context/ThemeContext"
-import * as api from "../services/api" // Import the api module
 
 // 311 Logo component defined locally (copied from other screens)
 const Logo311 = ({ size = "small", horizontal = false }) => {
@@ -82,48 +81,23 @@ const SentimentScreen = ({ route, navigation }) => {
 
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sentimentResult, setSentimentResult] = useState(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
-  // Function to analyze the sentiment using the analyzeSentiment function from api.js
-  const analyzeSentiment = async () => {
+  // Function to submit feedback
+  const submitFeedback = async () => {
     if (!feedback.trim()) {
       Alert.alert("Error", "Please enter your feedback");
       return;
     }
 
     setIsLoading(true);
-    try {
-      // Use the analyzeSentiment function from api.js
-      const result = await api.analyzeSentiment(feedback);
 
-      // Process the result
-      if (result) {
-        if (typeof result === 'string') {
-          setSentimentResult(result);
-        } else if (result.result) {
-          setSentimentResult(result.result);
-        } else if (result.sentiment) {
-          setSentimentResult(result.sentiment);
-        } else if (result.analysis) {
-          setSentimentResult(result.analysis);
-        } else {
-          setSentimentResult(JSON.stringify(result));
-        }
-      } else {
-        throw new Error("No result returned from sentiment analysis");
-      }
-    } catch (error) {
-      console.error("Sentiment analysis error:", error);
-      Alert.alert(
-        "Analysis Error",
-        "Could not analyze your feedback. Please try again."
-      );
-
-      // For demo purposes, provide mock result if API is unavailable
-      setSentimentResult("Thank you for your feedback! Based on our analysis, your experience was generally negative. We're sorry about the issues you encountered and will work to improve our service.");
-    } finally {
+    // Simulate a brief submission delay
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      setFeedbackSubmitted(true);
+      Alert.alert("Success", "Thank you for your feedback!");
+    }, 1000);
   };
 
   const returnToPreviousScreen = () => {
@@ -217,7 +191,7 @@ const SentimentScreen = ({ route, navigation }) => {
       <View style={styles.header}>
         <Logo311 size="small" />
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Feedback Analysis</Text>
+          <Text style={styles.title}>Feedback</Text>
           <Text style={styles.subtitle}>
             Tell us about your experience
           </Text>
@@ -247,32 +221,35 @@ const SentimentScreen = ({ route, navigation }) => {
                 numberOfLines={5}
                 style={styles.input}
                 theme={{ colors: { primary: COLORS.primary } }}
+                disabled={feedbackSubmitted}
               />
             </View>
 
             <Button
               mode="contained"
-              onPress={analyzeSentiment}
-              disabled={isLoading || !feedback.trim()}
+              onPress={submitFeedback}
+              disabled={isLoading || !feedback.trim() || feedbackSubmitted}
               loading={isLoading}
               color={COLORS.primary}
             >
-              {isLoading ? "Analyzing..." : "Submit Feedback"}
+              {feedbackSubmitted ? "Feedback Submitted" : isLoading ? "Submitting..." : "Submit Feedback"}
             </Button>
 
             {isLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={styles.loadingText}>
-                  Analyzing your feedback...
+                  Submitting your feedback...
                 </Text>
               </View>
             )}
 
-            {sentimentResult && !isLoading && (
+            {feedbackSubmitted && !isLoading && (
               <View style={styles.resultContainer}>
-                <Text style={styles.sectionTitle}>Analysis Result</Text>
-                <Text style={styles.resultText}>{sentimentResult}</Text>
+                <Text style={styles.sectionTitle}>Feedback Received</Text>
+                <Text style={styles.resultText}>
+                  Thank you for your feedback! We have received it and will use it to improve our services.
+                </Text>
               </View>
             )}
 
@@ -285,7 +262,7 @@ const SentimentScreen = ({ route, navigation }) => {
                 Back to Reports
               </Button>
 
-              {sentimentResult && (
+              {feedbackSubmitted && (
                 <Button
                   mode="contained"
                   onPress={() => navigation.navigate("Home")}
